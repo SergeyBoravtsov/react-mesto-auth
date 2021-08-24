@@ -1,0 +1,9 @@
+.card__mesto {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 246px;
+    min-height: 23px;
+    margin: 25px 15px 31px 21px;
+    padding: 0;
+}

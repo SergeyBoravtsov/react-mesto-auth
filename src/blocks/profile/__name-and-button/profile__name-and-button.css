@@ -1,0 +1,22 @@
+.profile__name-and-button {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 16px;
+    max-width: 400px;
+    /* border: green 1px dotted; */
+}
+
+@media (max-width: 810px) {
+    .profile__name-and-button {
+        padding-left: 42px;
+    }
+}
+
+@media (max-width: 480px) {
+    .profile__name-and-button {
+        padding-left: 28px;
+        max-width: 250px;
+    }
+}
