@@ -4,6 +4,7 @@ function Header() {
   return (
     <header className="header">
       <div className="header__logo"></div>
+      <div>Нечто</div>
     </header>
   );
 }

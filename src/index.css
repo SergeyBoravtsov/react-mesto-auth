@@ -57,3 +57,6 @@
 @import url(./blocks/popup/_edit-avatar/popup_edit-avatar.css);
 @import url(./blocks/popup/__error/popup__error.css);
 @import url(./blocks/popup/__error/_visible/popup__error_visible.css);
+
+@import url(./blocks/login/login.css);
+@import url(./blocks/register/register.css);

@@ -8,6 +8,9 @@ import EditAvatarPopup from "./EditAvatarPopup.js";
 import AddPlacePopup from "./AddPlacePopup.js";
 import api from "../utils/api.js";
 import { CurrentUserContext } from "../contexts/CurrentUserContext.js";
+import { Route, Switch, Redirect } from 'react-router-dom';
+import Login from "./Login.js";
+import Register from "./Register.js";
 
 function App() {
   const [isEditProfilePopupOpen, setIsEditProfilePopupOpen] = React.useState(false);
@@ -17,6 +20,7 @@ function App() {
   const [currentUser, setCurrentUser] = React.useState({ name: "", about: "" });
   const [cards, setCards] = React.useState([]);
   const [isLoadingData, setIsLoadingData] = React.useState(false);
+  const [isLoggedIn, setIsLoggedIn] = React.useState(false);
 
   React.useEffect(() => {
     Promise.all([api.getProfileInfo(), api.getAllCards()])
@@ -129,58 +133,72 @@ function App() {
 
   return (
     <CurrentUserContext.Provider value={currentUser}>
-      <div className="page">
-        <div className="content">
-          <Header />
-          <Main
-            onEditProfile={handleEditProfileClick}
-            onAddPlace={handleAddPlaceClick}
-            onEditAvatar={handleEditAvatarClick}
-            onCardClick={handleCardClick}
-            onCardLike={handleCardLike}
-            onCardDelete={handleCardDelete}
-            cards={cards}
-          />
-          <Footer />
-        </div>
+      <Switch>
+        <Route exact path='/'>
+          {isLoggedIn ? null : <Redirect to='/sign-in' />}
+          <div className="page">
+            <div className="content">
+              <Header />
+              <Main
+                onEditProfile={handleEditProfileClick}
+                onAddPlace={handleAddPlaceClick}
+                onEditAvatar={handleEditAvatarClick}
+                onCardClick={handleCardClick}
+                onCardLike={handleCardLike}
+                onCardDelete={handleCardDelete}
+                cards={cards}
+              />
+              <Footer />
+            </div>
 
-        <EditProfilePopup
-          isOpen={isEditProfilePopupOpen}
-          onClose={closeAllPopups}
-          onUpdateUser={handleUpdateUser}
-          isLoading={isLoadingData}
-        />
+            <EditProfilePopup
+              isOpen={isEditProfilePopupOpen}
+              onClose={closeAllPopups}
+              onUpdateUser={handleUpdateUser}
+              isLoading={isLoadingData}
+            />
 
-        <EditAvatarPopup
-          isOpen={isEditAvatarPopupOpen}
-          onClose={closeAllPopups}
-          onUpdateAvatar={handleUpdateAvatar}
-          isLoading={isLoadingData}
-        />
+            <EditAvatarPopup
+              isOpen={isEditAvatarPopupOpen}
+              onClose={closeAllPopups}
+              onUpdateAvatar={handleUpdateAvatar}
+              isLoading={isLoadingData}
+            />
 
-        <AddPlacePopup
-          isOpen={isAddPlacePopupOpen}
-          onClose={closeAllPopups}
-          onAddPlace={handleAddPlaceSubmit}
-          isLoading={isLoadingData}
-        />
+            <AddPlacePopup
+              isOpen={isAddPlacePopupOpen}
+              onClose={closeAllPopups}
+              onAddPlace={handleAddPlaceSubmit}
+              isLoading={isLoadingData}
+            />
 
-        {/*  <PopupWithForm
-          name="confirm-card-deletion"
-          title="Вы уверены?"
-          onClose={closeAllPopups}
-        >
-          <button
-            type="submit"
-            id="confirm-delete-button"
-            className="popup__button"
-          >
-            Да
-          </button>
-        </PopupWithForm> */}
+            {/*  <PopupWithForm
+              name="confirm-card-deletion"
+              title="Вы уверены?"
+              onClose={closeAllPopups}
+            >
+              <button
+                type="submit"
+                id="confirm-delete-button"
+                className="popup__button"
+              >
+                Да
+              </button>
+            </PopupWithForm> */}
 
-        <ImagePopup onClose={closeAllPopups} card={selectedCard} />
-      </div>
+            <ImagePopup onClose={closeAllPopups} card={selectedCard} />
+          </div>
+        </Route>
+
+        <Route path='/sign-up'>
+            {isLoggedIn ? <Redirect to='/' /> : <Register />}
+        </Route>
+
+        <Route path='/sign-in'>
+          {isLoggedIn ? <Redirect to='/' /> : <Login />}
+        </Route>
+
+      </Switch>
     </CurrentUserContext.Provider>
   );
 }
