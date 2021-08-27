@@ -1,7 +1,7 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, withRouter } from "react-router-dom";
 import Header from "./Header.js";
-//import './styles/Register.css';
+import * as mestoAuth from "../utils/auth.js";
 
 class Register extends React.Component {
   constructor(props) {
@@ -13,48 +13,67 @@ class Register extends React.Component {
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
   }
+
   handleChange = (e) => {
     const { name, value } = e.target;
     this.setState({
       [name]: value,
     });
   };
+
   handleSubmit = (e) => {
     e.preventDefault();
-    // здесь обработчик регистрации
+    mestoAuth.register(this.state.email, this.state.password)
+      .then((response) => {
+        console.log(response);
+        if (response.status === 201) {
+          this.props.onSuccess();
+          this.props.history.push("/sign-in");
+          return response.json();
+        } else {
+          this.props.onError();
+        }
+      })
+      .then((res) => {
+        console.log(res);
+        return res;
+      })
+      .catch((err) => {
+        console.error(err);
+      });
   };
+
   render() {
     return (
       <div className="page">
-        <Header>Registration</Header>
+        <Header text="Войти" link="/sign-in" />
         <div className="register">
           <p className="register__title">Регистрация</p>
           <form onSubmit={this.handleSubmit} className="register__form">
-            <label htmlFor="email">Email:</label>
             <input
+              className="register__input"
               id="email"
               name="email"
               type="email"
               value={this.state.email}
               onChange={this.handleChange}
+              placeholder="Email"
+              required
             />
-            <label htmlFor="password">Пароль:</label>
             <input
+              className="register__input"
               id="password"
               name="password"
               type="password"
               value={this.state.password}
               onChange={this.handleChange}
+              placeholder="Пароль"
+              required
             />
-            <div className="register__button-container">
-              <button
-                type="submit"
-                onSubmit={this.handleSubmit}
-                className="register__link"
-              >
-                Зарегистрироваться
-              </button>
-            </div>
+
+            <button type="submit" className="register__button">
+              Зарегистрироваться
+            </button>
           </form>
           <div className="register__signin">
             <p>Уже зарегистрированы?</p>
@@ -68,4 +87,4 @@ class Register extends React.Component {
   }
 }
 
-export default Register;
+export default withRouter(Register);

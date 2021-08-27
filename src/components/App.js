@@ -8,24 +8,32 @@ import EditAvatarPopup from "./EditAvatarPopup.js";
 import AddPlacePopup from "./AddPlacePopup.js";
 import api from "../utils/api.js";
 import { CurrentUserContext } from "../contexts/CurrentUserContext.js";
-import { Route, Switch, Redirect } from 'react-router-dom';
+import { Route, Switch, Redirect } from "react-router-dom";
 import Login from "./Login.js";
 import Register from "./Register.js";
+import InfoTooltip from "./InfoTooltip.js";
+import ProtectedRoute from "./ProtectedRoute.js";
+import successPicture from "../images/signupSuccess.svg";
+import failPicture from "../images/loginError.svg";
 
 function App() {
   const [isEditProfilePopupOpen, setIsEditProfilePopupOpen] = React.useState(false);
-  const [isAddPlacePopupOpen, setIsAddPlacePopupOpen] = React.useState(false);
   const [isEditAvatarPopupOpen, setIsEditAvatarPopupOpen] = React.useState(false);
-  const [selectedCard, setSelectedCard] = React.useState({});
+  const [isAddPlacePopupOpen, setIsAddPlacePopupOpen] = React.useState(false);
   const [currentUser, setCurrentUser] = React.useState({ name: "", about: "" });
+  const [selectedCard, setSelectedCard] = React.useState({});
   const [cards, setCards] = React.useState([]);
   const [isLoadingData, setIsLoadingData] = React.useState(false);
-  const [isLoggedIn, setIsLoggedIn] = React.useState(false);
 
+  const [isLoggedIn, setIsLoggedIn] = React.useState(false);
+  const [isSignupSuccessPopupOpen, setIsSignupSuccessPopupOpen] = React.useState(false);
+  const [isSignupErrorPopupOpen, setIsSignupErrorPopupOpen] = React.useState(false);
+  const [isLoginErrorPopupOpen, setIsLoginErrorPopupOpen] = React.useState(false);
+  
+  // получаем данные о пользователе и карточки с сервера
   React.useEffect(() => {
     Promise.all([api.getProfileInfo(), api.getAllCards()])
       .then(([userData, cardsData]) => {
-        //console.log(userData, cardsData)
         setCards(cardsData);
         setCurrentUser(userData);
       })
@@ -34,20 +42,22 @@ function App() {
       });
   }, []);
 
+
   function handleCardLike(card) {
     // Снова проверяем, есть ли уже лайк на этой карточке
     const isLiked = card.likes.some((i) => i._id === currentUser._id);
 
     // Отправляем запрос в API и получаем обновлённые данные карточки
-    api.changeLikeCardStatus(card._id, !isLiked)
-    .then((newCard) => {
-      setCards((state) =>
-        state.map((item) => (item._id === card._id ? newCard : item))
-      );
-    })
-    .catch((err) => {
-      console.error(err);
-    });
+    api
+      .changeLikeCardStatus(card._id, !isLiked)
+      .then((newCard) => {
+        setCards((state) =>
+          state.map((item) => (item._id === card._id ? newCard : item))
+        );
+      })
+      .catch((err) => {
+        console.error(err);
+      });
   }
 
   function handleCardDelete(card) {
@@ -78,10 +88,25 @@ function App() {
     setIsAddPlacePopupOpen(true);
   }
 
+  function handleSignupError() {
+    setIsSignupErrorPopupOpen(true);
+  }
+
+  function handleSignupSuccess() {
+    setIsSignupSuccessPopupOpen(true);
+  }
+
+  function handleLoginError() {
+    setIsLoginErrorPopupOpen(true);
+  }
+
   function closeAllPopups() {
     setIsEditProfilePopupOpen(false);
     setIsAddPlacePopupOpen(false);
     setIsEditAvatarPopupOpen(false);
+    setIsSignupSuccessPopupOpen(false);
+    setIsLoginErrorPopupOpen(false);
+    setIsSignupErrorPopupOpen(false);
     setSelectedCard({});
   }
 
@@ -134,12 +159,17 @@ function App() {
   return (
     <CurrentUserContext.Provider value={currentUser}>
       <Switch>
-        <Route exact path='/'>
-          {isLoggedIn ? null : <Redirect to='/sign-in' />}
+
+        <Route exact path="/">
           <div className="page">
             <div className="content">
               <Header />
-              <Main
+
+              <ProtectedRoute
+                exact
+                path="/"
+                component={Main}
+                isLoggedIn={isLoggedIn}
                 onEditProfile={handleEditProfileClick}
                 onAddPlace={handleAddPlaceClick}
                 onEditAvatar={handleEditAvatarClick}
@@ -148,6 +178,7 @@ function App() {
                 onCardDelete={handleCardDelete}
                 cards={cards}
               />
+
               <Footer />
             </div>
 
@@ -172,30 +203,48 @@ function App() {
               isLoading={isLoadingData}
             />
 
-            {/*  <PopupWithForm
-              name="confirm-card-deletion"
-              title="Вы уверены?"
-              onClose={closeAllPopups}
-            >
-              <button
-                type="submit"
-                id="confirm-delete-button"
-                className="popup__button"
-              >
-                Да
-              </button>
-            </PopupWithForm> */}
-
             <ImagePopup onClose={closeAllPopups} card={selectedCard} />
           </div>
         </Route>
 
-        <Route path='/sign-up'>
-            {isLoggedIn ? <Redirect to='/' /> : <Register />}
+
+        <Route path="/sign-up">
+          {isLoggedIn 
+            ? <Redirect to="/" /> 
+            : <Register onError={handleSignupError} onSuccess={handleSignupSuccess} />
+          }
+
+          <InfoTooltip
+            name="signup-error"
+            isOpen={isSignupErrorPopupOpen}
+            onClose={closeAllPopups}
+            picture={failPicture}
+            info="Что-то пошло не так! Попробуйте ещё раз."
+          />
         </Route>
 
-        <Route path='/sign-in'>
-          {isLoggedIn ? <Redirect to='/' /> : <Login />}
+
+        <Route path="/sign-in">
+          {isLoggedIn 
+            ? <Redirect to="/" /> 
+            : <Login  onError={handleLoginError} />
+          }
+
+          <InfoTooltip
+            name="login-error"
+            isOpen={isLoginErrorPopupOpen}
+            onClose={closeAllPopups}
+            picture={failPicture}
+            info="Что-то пошло не так! Попробуйте ещё раз."
+          />
+
+          <InfoTooltip
+            name="signup-success"
+            isOpen={isSignupSuccessPopupOpen}
+            onClose={closeAllPopups}
+            picture={successPicture}
+            info="Вы успешно зарегистрировались!"
+          />
         </Route>
 
       </Switch>
