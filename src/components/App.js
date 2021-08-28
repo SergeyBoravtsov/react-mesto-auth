@@ -8,13 +8,14 @@ import EditAvatarPopup from "./EditAvatarPopup.js";
 import AddPlacePopup from "./AddPlacePopup.js";
 import api from "../utils/api.js";
 import { CurrentUserContext } from "../contexts/CurrentUserContext.js";
-import { Route, Switch, Redirect } from "react-router-dom";
+import { Route, Switch, useHistory } from "react-router-dom";
 import Login from "./Login.js";
 import Register from "./Register.js";
 import InfoTooltip from "./InfoTooltip.js";
 import ProtectedRoute from "./ProtectedRoute.js";
 import successPicture from "../images/signupSuccess.svg";
 import failPicture from "../images/loginError.svg";
+import * as mestoAuth from "../utils/auth.js";
 
 function App() {
   const [isEditProfilePopupOpen, setIsEditProfilePopupOpen] = React.useState(false);
@@ -29,7 +30,8 @@ function App() {
   const [isSignupSuccessPopupOpen, setIsSignupSuccessPopupOpen] = React.useState(false);
   const [isSignupErrorPopupOpen, setIsSignupErrorPopupOpen] = React.useState(false);
   const [isLoginErrorPopupOpen, setIsLoginErrorPopupOpen] = React.useState(false);
-  
+  const [userEmail, setUserEmail] = React.useState("");
+
   // получаем данные о пользователе и карточки с сервера
   React.useEffect(() => {
     Promise.all([api.getProfileInfo(), api.getAllCards()])
@@ -42,6 +44,24 @@ function App() {
       });
   }, []);
 
+   // создаём объект истории для перенаправления в следующем эффекте
+   let history = useHistory();
+
+  // проверим токен после монтирования App и авторизуемся, если он есть в хранилище и действителен
+  React.useEffect(() => {
+    const jwt = localStorage.getItem("jwt");
+    if (jwt) {
+      mestoAuth.getContent(jwt)
+      .then((res) => {
+        if (res) {
+          setUserEmail(res.data.email);
+          setIsLoggedIn(true);
+          history.push("/");
+        }
+      })
+      .catch(err => console.error(err))
+    }
+  }, []);
 
   function handleCardLike(card) {
     // Снова проверяем, есть ли уже лайк на этой карточке
@@ -98,6 +118,18 @@ function App() {
 
   function handleLoginError() {
     setIsLoginErrorPopupOpen(true);
+  }
+
+  function handleLogin() {
+    setIsLoggedIn(true);
+  }
+
+  function handleLogout() {
+    setIsLoggedIn(false);
+  }
+
+  function handleUserEmail(data) {
+    setUserEmail(data)
   }
 
   function closeAllPopups() {
@@ -159,11 +191,15 @@ function App() {
   return (
     <CurrentUserContext.Provider value={currentUser}>
       <Switch>
-
         <Route exact path="/">
           <div className="page">
             <div className="content">
-              <Header />
+              <Header
+                text="Выйти"
+                link="/sign-in"
+                email={userEmail}
+                onLogout={handleLogout}
+              />
 
               <ProtectedRoute
                 exact
@@ -209,10 +245,10 @@ function App() {
 
 
         <Route path="/sign-up">
-          {isLoggedIn 
-            ? <Redirect to="/" /> 
-            : <Register onError={handleSignupError} onSuccess={handleSignupSuccess} />
-          }
+          <Register
+            onError={handleSignupError}
+            onSuccess={handleSignupSuccess}
+          />
 
           <InfoTooltip
             name="signup-error"
@@ -225,10 +261,11 @@ function App() {
 
 
         <Route path="/sign-in">
-          {isLoggedIn 
-            ? <Redirect to="/" /> 
-            : <Login  onError={handleLoginError} />
-          }
+          <Login 
+            onError={handleLoginError} 
+            onLogin={handleLogin} 
+            onUserEmail={handleUserEmail} 
+          />
 
           <InfoTooltip
             name="login-error"
@@ -246,7 +283,6 @@ function App() {
             info="Вы успешно зарегистрировались!"
           />
         </Route>
-
       </Switch>
     </CurrentUserContext.Provider>
   );

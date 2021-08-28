@@ -1,17 +1,16 @@
-.header__link{
+.header__user-email {
+    color: white;
+    margin: 0 24px 0 0;
     font-family: Inter, Arial, Helvetica, sans-serif;
     font-style: normal;
-    font-weight: normal;
+    font-weight: 500;
     font-size: 18px;
     line-height: 22px;
-    margin: 0;
     padding: 0;
-    color: #A9A9A9;
-    text-decoration: none;
 }
 
 @media (max-width: 480px) {
-    .header__link {
+    .header__user-email {
         font-size: 14px;
     }
 }

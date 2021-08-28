@@ -1,0 +1,11 @@
+.header__info {
+    margin-bottom: 46px;
+    display: flex;
+    align-items: center;
+}
+
+@media (max-width: 950px) {
+    .header__info {
+        margin: 0 27px 31.6px auto;
+    }
+}

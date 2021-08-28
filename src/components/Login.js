@@ -1,5 +1,5 @@
 import React from "react";
-import { Link, withRouter } from "react-router-dom";
+import { withRouter } from "react-router-dom";
 import Header from "./Header.js";
 import * as mestoAuth from "../utils/auth.js";
 
@@ -13,6 +13,7 @@ class Login extends React.Component {
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
   }
+
   handleChange(e) {
     const { name, value } = e.target;
     this.setState({
@@ -24,38 +25,42 @@ class Login extends React.Component {
     e.preventDefault();
     if (!this.state.email || !this.state.password) {
       return;
+    } else {
+      mestoAuth
+        .authorize(this.state.email, this.state.password)
+        .then((response) => {
+          if (response.ok) {
+            return response.json();
+          } else {
+            this.props.onError();
+          }
+        })
+        .then((data) => {
+          if (data.token) {
+            localStorage.setItem("jwt", data.token);
+            mestoAuth
+              .getContent(localStorage.jwt)
+              .then((res) => {
+                this.props.onUserEmail(res.data.email);
+                this.setState({ email: "", password: "",  }, () => {
+                  this.props.onLogin(); // меняем стейт isLoggedIn в App.js на true
+                  this.props.history.push("/"); // переходим на главную страницу приложения
+                });
+              })
+              .catch((err) => console.error(err));
+            return data;
+          } else {
+            return;
+          }
+        })
+        .catch((err) => console.error(err));
     }
-    // здесь авторизуем пользователя
-    // далее проверяем токен
-    // наконец, перенаправляем пользователя на страницу `/`
-    // в случае ошибки показываем попап this.props.onError()
-
-    else {
-    mestoAuth.authorize(this.state.email, this.state.password)
-      .then(response => {
-      console.log(response);
-      if (response.ok) {
-      return response.json()
-    } 
-    else {
-      this.props.onError();
-    }})
-    .then(data => {
-      console.log(data);
-      if (data.jwt) {
-        localStorage.setItem('jwt', data.jwt);
-        return data;
-      }
-    })
-    .catch(err => console.error(err));
-
-    
-  }}
+  }
 
   render() {
     return (
       <div className="page">
-        <Header text="Регистрация" link="/sign-up" />
+        <Header text="Регистрация" link="/sign-up" email="" />
         <div className="login">
           <p className="login__title">Вход</p>
           <form onSubmit={this.handleSubmit} className="login__form">
@@ -91,4 +96,4 @@ class Login extends React.Component {
   }
 }
 
-export default Login;
+export default withRouter(Login);

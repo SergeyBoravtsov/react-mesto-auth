@@ -25,7 +25,6 @@ class Register extends React.Component {
     e.preventDefault();
     mestoAuth.register(this.state.email, this.state.password)
       .then((response) => {
-        console.log(response);
         if (response.status === 201) {
           this.props.onSuccess();
           this.props.history.push("/sign-in");
@@ -35,7 +34,6 @@ class Register extends React.Component {
         }
       })
       .then((res) => {
-        console.log(res);
         return res;
       })
       .catch((err) => {
@@ -46,7 +44,7 @@ class Register extends React.Component {
   render() {
     return (
       <div className="page">
-        <Header text="Войти" link="/sign-in" />
+        <Header text="Войти" link="/sign-in" email="" />
         <div className="register">
           <p className="register__title">Регистрация</p>
           <form onSubmit={this.handleSubmit} className="register__form">
