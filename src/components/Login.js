@@ -33,21 +33,21 @@ class Login extends React.Component {
             return response.json();
           } else {
             this.props.onError();
+            return Promise.reject(`Ошибка авторизации: ${response.status}`);
           }
         })
         .then((data) => {
           if (data.token) {
-            localStorage.setItem("jwt", data.token);
-            mestoAuth
-              .getContent(localStorage.jwt)
-              .then((res) => {
-                this.props.onUserEmail(res.data.email);
-                this.setState({ email: "", password: "",  }, () => {
-                  this.props.onLogin(); // меняем стейт isLoggedIn в App.js на true
-                  this.props.history.push("/"); // переходим на главную страницу приложения
-                });
-              })
-              .catch((err) => console.error(err));
+            localStorage.setItem("jwt", data.token); //записываем токен в локальное хранилище
+
+            // меняем в App стейт userEmail, чтобы введённый email отобразился в шапке
+            this.props.onUserEmail(this.state.email);
+
+            this.setState({ email: "", password: "" }, () => {
+              this.props.onLogin(); // меняем стейт isLoggedIn в App.js на true
+              this.props.history.push("/"); // переходим на главную страницу приложения
+            });
+
             return data;
           } else {
             return;

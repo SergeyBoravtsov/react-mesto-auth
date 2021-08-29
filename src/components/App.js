@@ -34,14 +34,13 @@ function App() {
 
   // получаем данные о пользователе и карточки с сервера
   React.useEffect(() => {
-    Promise.all([api.getProfileInfo(), api.getAllCards()])
-      .then(([userData, cardsData]) => {
-        setCards(cardsData);
-        setCurrentUser(userData);
-      })
-      .catch((err) => {
-        console.error(err);
-      });
+      api.getProfileInfo()
+      .then(userData => {setCurrentUser(userData)})
+      .catch((err) => {console.error(err)});
+
+      api.getAllCards()
+      .then(cardsData => {setCards(cardsData)})
+      .catch((err) => {console.error(err)});
   }, []);
 
    // создаём объект истории для перенаправления в следующем эффекте
@@ -61,7 +60,7 @@ function App() {
       })
       .catch(err => console.error(err))
     }
-  }, []);
+  }, [history]);
 
   function handleCardLike(card) {
     // Снова проверяем, есть ли уже лайк на этой карточке

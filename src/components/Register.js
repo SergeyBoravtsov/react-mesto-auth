@@ -31,10 +31,8 @@ class Register extends React.Component {
           return response.json();
         } else {
           this.props.onError();
+          return Promise.reject(`Ошибка регистрации: ${response.status}`);
         }
-      })
-      .then((res) => {
-        return res;
       })
       .catch((err) => {
         console.error(err);
